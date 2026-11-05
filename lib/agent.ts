@@ -3,7 +3,10 @@ import { OAuthGuide } from '@/types/guide'
 import { findOAuthDocs } from './search'
 import { crawlOAuthPage } from './crawl'
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!)
+function getGenAI() {
+  const apiKey = process.env.GEMINI_API_KEY || ''
+  return new GoogleGenerativeAI(apiKey)
+}
 
 const EXTRACTION_PROMPT = `
 You are an expert at analyzing OAuth developer documentation.
@@ -78,6 +81,7 @@ export async function generateGuide(
   domain?: string,
   onProgress?: (step: string) => void
 ): Promise<OAuthGuide> {
+  const genAI = getGenAI()
   const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' })
 
   onProgress?.('Searching for official OAuth documentation...')

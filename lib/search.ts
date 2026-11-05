@@ -1,12 +1,16 @@
 import Exa from 'exa-js'
 
-const exa = new Exa(process.env.EXA_API_KEY!)
+function getExa() {
+  return new Exa(process.env.EXA_API_KEY!)
+}
 
 export async function findOAuthDocs(appName: string, domain?: string): Promise<{
   officialDocsUrl: string | null
   officialDocsContent: string | null
   communityResults: Array<{ url: string; title: string; text: string }>
 }> {
+  const exa = getExa()
+
   const searchQuery = domain
     ? `${appName} OAuth 2.0 developer app registration documentation site:${domain}`
     : `${appName} OAuth 2.0 developer app setup registration documentation`

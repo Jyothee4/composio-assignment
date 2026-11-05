@@ -1,9 +1,13 @@
 import FirecrawlApp from '@mendable/firecrawl-js'
 
-const firecrawl = new FirecrawlApp({ apiKey: process.env.FIRECRAWL_API_KEY! })
+function getFirecrawl() {
+  const apiKey = process.env.FIRECRAWL_API_KEY || ''
+  return new FirecrawlApp({ apiKey })
+}
 
 export async function crawlOAuthPage(url: string): Promise<string> {
   try {
+    const firecrawl = getFirecrawl()
     const result = await firecrawl.scrapeUrl(url, {
       formats: ['markdown'],
       onlyMainContent: true,
