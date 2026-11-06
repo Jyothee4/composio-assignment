@@ -76,13 +76,19 @@ Schema:
 }
 `
 
+const CANDIDATE_MODELS = [
+  process.env.GEMINI_MODEL,
+  'gemini-3.1-flash-lite',
+  'gemini-3.5-flash-lite',
+  'gemini-3.8-flash',
+].filter(Boolean) as string[]
+
 export async function generateGuide(
   appName: string,
   domain?: string,
   onProgress?: (step: string) => void
 ): Promise<OAuthGuide> {
   const genAI = getGenAI()
-  const model = genAI.getGenerativeModel({ model: 'gemini-3.8-flash' })
 
   onProgress?.('Searching for official OAuth documentation...')
 
@@ -132,8 +138,23 @@ ${deepContent || 'Could not retrieve official documentation.'}
 ${communityContext || 'No community discussions found.'}
 `
 
-  const result = await model.generateContent(prompt)
-  const text = result.response.text()
+  let text = ''
+  let lastError: unknown = null
+  for (const modelName of CANDIDATE_MODELS) {
+    try {
+      const model = genAI.getGenerativeModel({ model: modelName })
+      const result = await model.generateContent(prompt)
+      text = result.response.text()
+      if (text) break
+    } catch (err) {
+      lastError = err
+      console.warn(`Model ${modelName} failed, trying fallback...`, err)
+    }
+  }
+
+  if (!text) {
+    throw (lastError instanceof Error ? lastError : new Error('All candidate models failed or are at capacity.'))
+  }
 
   // Parse the JSON response
   let extracted: Partial<OAuthGuide>
