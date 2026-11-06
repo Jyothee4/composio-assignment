@@ -82,7 +82,7 @@ export async function generateGuide(
   onProgress?: (step: string) => void
 ): Promise<OAuthGuide> {
   const genAI = getGenAI()
-  const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' })
+  const model = genAI.getGenerativeModel({ model: 'gemini-3.8-flash' })
 
   onProgress?.('Searching for official OAuth documentation...')
 
