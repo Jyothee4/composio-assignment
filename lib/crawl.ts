@@ -27,24 +27,17 @@ export async function crawlOAuthPage(url: string): Promise<CrawlResult> {
       onlyMainContent: true,
     })
 
-    if (result.success) {
-      if (result.markdown && result.markdown.trim().length > 100) {
-        return {
-          markdown: result.markdown,
-          status: 'scraped',
-        }
-      }
+    if (result && result.markdown && result.markdown.trim().length > 100) {
       return {
-        markdown: result.markdown || '',
-        status: 'blocked_or_empty',
-        detail: 'Page body was empty or truncated by anti-bot challenge',
+        markdown: result.markdown,
+        status: 'scraped',
       }
     }
 
     return {
-      markdown: '',
+      markdown: result?.markdown || '',
       status: 'blocked_or_empty',
-      detail: result.error || 'Anti-bot challenge or scrape error encountered',
+      detail: 'Page body was empty or truncated by anti-bot challenge',
     }
   } catch (err) {
     return {
