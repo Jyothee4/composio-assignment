@@ -231,8 +231,8 @@ ${communityContext || 'No community discussions found.'}
   const rawVerified = extracted.agent_verified ?? []
   const filteredVerified = rawVerified.filter(
     (v) =>
-      !v.action.toLowerCase().includes('scrape') &&
-      !v.action.toLowerCase().includes('documentation existence')
+      !v.action?.toLowerCase().includes('scrape') &&
+      !v.action?.toLowerCase().includes('documentation existence')
   )
   const combinedVerified = [...systemAuditLedger, ...filteredVerified]
 
