@@ -1,7 +1,7 @@
 import { GoogleGenerativeAI } from '@google/generative-ai'
 import { OAuthGuide } from '@/types/guide'
 import { findOAuthDocs } from './search'
-import { crawlOAuthPage } from './crawl'
+import { crawlOAuthPage, CrawlResult } from './crawl'
 
 function getGenAI() {
   const apiKey = process.env.GEMINI_API_KEY || ''
@@ -101,11 +101,12 @@ export async function generateGuide(
   // Step 2: Deep crawl the official page if found
   let deepContent = officialDocsContent ?? ''
   let officialSources: OAuthGuide['official_sources'] = []
+  let crawlResult: CrawlResult | null = null
 
   if (officialDocsUrl) {
-    const crawled = await crawlOAuthPage(officialDocsUrl)
-    if (crawled.length > deepContent.length) {
-      deepContent = crawled
+    crawlResult = await crawlOAuthPage(officialDocsUrl)
+    if (crawlResult.status === 'scraped' && crawlResult.markdown.length > deepContent.length) {
+      deepContent = crawlResult.markdown
     }
     officialSources = [{
       title: `${appName} OAuth Documentation`,
@@ -189,11 +190,58 @@ ${communityContext || 'No community discussions found.'}
 
   onProgress?.('Guide ready.')
 
+  // Build transparent system audit items
+  const systemAuditLedger: OAuthGuide['agent_verified'] = []
+
+  if (officialDocsUrl) {
+    let host = ''
+    try {
+      host = new URL(officialDocsUrl).hostname
+    } catch {
+      host = officialDocsUrl
+    }
+
+    if (crawlResult?.status === 'scraped') {
+      systemAuditLedger.push({
+        action: 'Official documentation scrape',
+        status: 'verified',
+        note: `Clean markdown extracted from ${host} via Firecrawl.`,
+      })
+    } else if (crawlResult?.status === 'blocked_or_empty') {
+      systemAuditLedger.push({
+        action: 'Official documentation scrape',
+        status: 'attempted',
+        note: `Direct scrape on ${host} blocked (anti-bot / JS barrier). Gracefully fell back to Exa neural semantic excerpts.`,
+      })
+    } else if (crawlResult?.status === 'error') {
+      systemAuditLedger.push({
+        action: 'Official documentation scrape',
+        status: 'attempted',
+        note: `Direct scrape request failed (${crawlResult.detail || 'connection error'}). Gracefully fell back to Exa semantic excerpts.`,
+      })
+    }
+  } else {
+    systemAuditLedger.push({
+      action: 'Official documentation search',
+      status: 'could_not_verify',
+      note: 'No direct official OAuth documentation URL resolved; synthesized from community signals.',
+    })
+  }
+
+  const rawVerified = extracted.agent_verified ?? []
+  const filteredVerified = rawVerified.filter(
+    (v) =>
+      !v.action.toLowerCase().includes('scrape') &&
+      !v.action.toLowerCase().includes('documentation existence')
+  )
+  const combinedVerified = [...systemAuditLedger, ...filteredVerified]
+
   return {
     app_name: appName,
     app_domain: domain ?? '',
     generated_at: new Date().toISOString(),
     official_sources: officialSources,
     ...extracted,
+    agent_verified: combinedVerified,
   } as OAuthGuide
 }
