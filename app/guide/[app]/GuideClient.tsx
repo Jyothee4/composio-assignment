@@ -6,38 +6,38 @@ import { OAuthGuide } from '@/types/guide'
 import Link from 'next/link'
 
 const DIFFICULTY_CONFIG = {
-  1: { label: 'Instant', color: 'text-green-700', bg: 'bg-green-50', border: 'border-green-200', dot: 'bg-green-500' },
-  2: { label: 'Easy', color: 'text-yellow-700', bg: 'bg-yellow-50', border: 'border-yellow-200', dot: 'bg-yellow-500' },
+  1: { label: 'Instant', color: 'text-emerald-700', bg: 'bg-emerald-50', border: 'border-emerald-200', dot: 'bg-emerald-500' },
+  2: { label: 'Easy', color: 'text-amber-700', bg: 'bg-amber-50', border: 'border-amber-200', dot: 'bg-amber-500' },
   3: { label: 'Moderate', color: 'text-orange-700', bg: 'bg-orange-50', border: 'border-orange-200', dot: 'bg-orange-500' },
-  4: { label: 'Involved', color: 'text-red-700', bg: 'bg-red-50', border: 'border-red-200', dot: 'bg-red-500' },
-  5: { label: 'Restricted', color: 'text-gray-700', bg: 'bg-gray-50', border: 'border-gray-200', dot: 'bg-gray-500' },
+  4: { label: 'Involved', color: 'text-rose-700', bg: 'bg-rose-50', border: 'border-rose-200', dot: 'bg-rose-500' },
+  5: { label: 'Restricted', color: 'text-purple-700', bg: 'bg-purple-50', border: 'border-purple-200', dot: 'bg-purple-500' },
 }
 
-const SOURCE_LABEL = {
+const SOURCE_LABEL: Record<string, string> = {
   reddit: 'Reddit',
   github: 'GitHub',
   stackoverflow: 'Stack Overflow',
-  blog: 'Blog',
-  forum: 'Forum',
+  blog: 'Engineering Blog',
+  forum: 'Developer Forum',
 }
 
 function WaitTimeDisplay({ guide }: { guide: OAuthGuide }) {
   if (!guide.approval_required) {
-    return <span className="text-green-600 font-medium">No approval needed</span>
+    return <span className="text-emerald-600 font-semibold">No approval needed</span>
   }
   const { approval_wait_days_min, approval_wait_days_max, approval_wait_source } = guide
-  if (approval_wait_days_max === 0) return <span className="text-gray-500">Unknown</span>
+  if (approval_wait_days_max === 0) return <span className="text-gray-600 font-semibold">Instant / Self-serve</span>
   const timeStr =
     approval_wait_days_min === approval_wait_days_max
       ? `~${approval_wait_days_min} days`
       : `${approval_wait_days_min}–${approval_wait_days_max} days`
   return (
-    <span>
-      <span className="font-medium">{timeStr}</span>
-      <span className="text-xs text-gray-400 ml-1">
-        ({approval_wait_source === 'official' ? 'per docs' : approval_wait_source === 'community' ? 'community reports' : 'estimated'})
+    <div>
+      <span className="font-semibold text-gray-900">{timeStr}</span>
+      <span className="text-[11px] text-gray-500 block font-normal">
+        {approval_wait_source === 'official' ? 'per official docs' : approval_wait_source === 'community' ? 'per developer reports' : 'estimated'}
       </span>
-    </span>
+    </div>
   )
 }
 
@@ -115,56 +115,58 @@ export default function GuideClient({ appName }: { appName: string }) {
   const diff = guide ? DIFFICULTY_CONFIG[guide.difficulty] : null
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Header */}
-      <div className="border-b border-gray-100 px-6 py-4 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2 hover:opacity-70 transition-opacity">
-          <div className="w-6 h-6 bg-black rounded flex items-center justify-center">
-            <span className="text-white text-xs font-bold">O</span>
+    <div className="min-h-screen bg-slate-50/60 pb-20">
+      {/* Navbar */}
+      <div className="bg-white border-b border-gray-200/80 px-6 py-3.5 sticky top-0 z-30">
+        <div className="max-w-3xl mx-auto flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+            <div className="w-6 h-6 bg-black rounded flex items-center justify-center">
+              <span className="text-white text-xs font-bold">O</span>
+            </div>
+            <span className="font-semibold text-gray-900 tracking-tight">OAuthGuide</span>
+          </Link>
+          <div className="flex items-center gap-2.5">
+            {guide && (
+              <>
+                <button
+                  onClick={() => runInvestigation(true)}
+                  disabled={loading}
+                  className="text-xs bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 px-3 py-1.5 rounded-md transition-colors flex items-center gap-1.5 font-medium shadow-sm disabled:opacity-50"
+                >
+                  <span>⚡</span> Re-investigate live
+                </button>
+                <button
+                  onClick={copyUrl}
+                  className="text-xs bg-black text-white hover:bg-gray-800 px-3 py-1.5 rounded-md transition-colors font-medium shadow-sm"
+                >
+                  {copied ? '✓ Link copied!' : 'Share guide →'}
+                </button>
+              </>
+            )}
           </div>
-          <span className="font-semibold text-gray-900">OAuthGuide</span>
-        </Link>
-        <div className="flex items-center gap-3">
-          {guide && (
-            <>
-              <button
-                onClick={() => runInvestigation(true)}
-                disabled={loading}
-                className="text-xs bg-gray-50 hover:bg-gray-100 text-gray-700 border border-gray-200 px-3 py-1.5 rounded-md transition-colors flex items-center gap-1.5 disabled:opacity-50"
-              >
-                <span>⚡</span> Re-investigate live
-              </button>
-              <button
-                onClick={copyUrl}
-                className="text-xs text-gray-600 hover:text-gray-900 border border-gray-200 px-3 py-1.5 rounded-md transition-colors font-medium"
-              >
-                {copied ? '✓ Link copied!' : 'Share guide →'}
-              </button>
-            </>
-          )}
         </div>
       </div>
 
-      <div className="max-w-2xl mx-auto px-6 py-12">
+      <div className="max-w-3xl mx-auto px-6 pt-8">
         {/* Loading state */}
         {loading && (
-          <div className="space-y-4">
+          <div className="bg-white rounded-xl border border-gray-200 p-8 shadow-sm space-y-6">
             <div className="flex items-center gap-3">
-              <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin" />
+              <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin" />
               <h1 className="text-lg font-semibold text-gray-900">
                 Investigating OAuth for {appName}...
               </h1>
             </div>
-            <div className="space-y-2 pl-7">
+            <div className="space-y-2.5 pl-8 border-l-2 border-gray-100">
               {progress.map((msg, i) => (
-                <div key={i} className="text-sm text-gray-600 flex items-center gap-2">
-                  <span className="text-green-500 font-bold">✓</span>
-                  {msg}
+                <div key={i} className="text-sm text-gray-700 flex items-center gap-2">
+                  <span className="text-emerald-600 font-bold">✓</span>
+                  <span>{msg}</span>
                 </div>
               ))}
-              <div className="text-sm text-gray-400 flex items-center gap-2">
-                <span className="w-3 h-3 border border-gray-300 border-t-gray-600 rounded-full animate-spin inline-block" />
-                Executing agent pipeline...
+              <div className="text-sm text-gray-400 flex items-center gap-2 animate-pulse">
+                <span className="w-2 h-2 rounded-full bg-blue-500" />
+                <span>Deep crawling official documentation and developer sources...</span>
               </div>
             </div>
           </div>
@@ -172,11 +174,11 @@ export default function GuideClient({ appName }: { appName: string }) {
 
         {/* Error state */}
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-5 space-y-3">
-            <div className="flex items-center gap-2 text-red-800 font-medium text-sm">
+          <div className="bg-rose-50 border border-rose-200 rounded-xl p-6 space-y-3">
+            <div className="flex items-center gap-2 text-rose-800 font-semibold text-sm">
               <span>⚠️</span> Investigation notice
             </div>
-            <p className="text-sm text-red-700">{error}</p>
+            <p className="text-sm text-rose-700 leading-relaxed">{error}</p>
             <div className="pt-2 flex gap-3">
               <button
                 onClick={() => router.push('/')}
@@ -186,7 +188,7 @@ export default function GuideClient({ appName }: { appName: string }) {
               </button>
               <button
                 onClick={() => runInvestigation(false)}
-                className="text-xs bg-red-600 text-white px-3 py-1.5 rounded hover:bg-red-700"
+                className="text-xs bg-rose-600 text-white px-3 py-1.5 rounded hover:bg-rose-700"
               >
                 Try again
               </button>
@@ -194,211 +196,289 @@ export default function GuideClient({ appName }: { appName: string }) {
           </div>
         )}
 
-        {/* Guide */}
+        {/* Guide Content */}
         {guide && !loading && (
-          <div className="space-y-8">
-            {/* Title + Score */}
-            <div>
-              <div className="flex items-start justify-between gap-4 mb-2">
+          <div className="space-y-6">
+            {/* Header Hero Card */}
+            <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm space-y-5">
+              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
                 <div>
-                  <h1 className="text-3xl font-bold text-gray-900">{guide.app_name}</h1>
+                  <h1 className="text-3xl font-bold text-gray-900 tracking-tight">{guide.app_name}</h1>
                   {guide.app_domain && (
-                    <p className="text-sm text-gray-400 mt-0.5">{guide.app_domain}</p>
+                    <p className="text-sm text-gray-400 font-mono mt-0.5">{guide.app_domain}</p>
                   )}
                 </div>
                 {diff && (
-                  <div className={`flex-shrink-0 flex items-center gap-2 px-3 py-1.5 rounded-full border ${diff.bg} ${diff.border}`}>
+                  <div className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border self-start ${diff.bg} ${diff.border}`}>
                     <span className={`w-2 h-2 rounded-full ${diff.dot}`} />
                     <span className={`text-sm font-semibold ${diff.color}`}>Tier {guide.difficulty}: {diff.label}</span>
                   </div>
                 )}
               </div>
-            </div>
 
-            {/* OAuth not found */}
-            {!guide.oauth_exists && (
-              <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                <p className="text-sm font-medium text-gray-700">No public OAuth found</p>
-                {guide.oauth_not_found_reason && (
-                  <p className="text-sm text-gray-500 mt-1">{guide.oauth_not_found_reason}</p>
+              {/* Verified Sources Action Pills */}
+              <div className="flex flex-wrap items-center gap-2 pt-1">
+                {guide.portal_url && (
+                  <a
+                    href={guide.portal_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 text-xs font-medium text-gray-800 bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-md transition-colors"
+                  >
+                    <span>Developer Console</span>
+                    <span className="text-gray-400">↗</span>
+                  </a>
+                )}
+                {guide.official_sources?.[0]?.url && (
+                  <a
+                    href={guide.official_sources[0].url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 text-xs font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200/80 px-3 py-1.5 rounded-md transition-colors"
+                  >
+                    <span>Official Documentation</span>
+                    <span className="text-blue-500">↗</span>
+                  </a>
                 )}
               </div>
-            )}
 
-            {/* Key metrics */}
-            {guide.oauth_exists && (
-              <div className="grid grid-cols-3 gap-3">
-                <div className="border border-gray-100 rounded-lg p-3 bg-gray-50/50">
-                  <p className="text-xs text-gray-400 mb-1">Setup time</p>
-                  <p className="text-sm font-semibold text-gray-900">
-                    {guide.setup_time_minutes < 60
-                      ? `~${guide.setup_time_minutes} min`
-                      : `~${Math.round(guide.setup_time_minutes / 60)}h`}
-                  </p>
+              {/* Key Metrics Grid */}
+              {guide.oauth_exists && (
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+                  <div className="border border-gray-100 rounded-lg p-3.5 bg-slate-50/50">
+                    <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Setup time</p>
+                    <p className="text-base font-semibold text-gray-900">
+                      {guide.setup_time_minutes < 60
+                        ? `~${guide.setup_time_minutes} min`
+                        : `~${Math.round(guide.setup_time_minutes / 60)}h`}
+                    </p>
+                  </div>
+                  <div className="border border-gray-100 rounded-lg p-3.5 bg-slate-50/50">
+                    <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Approval wait</p>
+                    <WaitTimeDisplay guide={guide} />
+                  </div>
+                  <div className="border border-gray-100 rounded-lg p-3.5 bg-slate-50/50">
+                    <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1">OAuth flow</p>
+                    <p className="text-base font-semibold text-gray-900 capitalize">
+                      {guide.oauth_flow_type.replace(/_/g, ' ')}
+                    </p>
+                  </div>
                 </div>
-                <div className="border border-gray-100 rounded-lg p-3 bg-gray-50/50">
-                  <p className="text-xs text-gray-400 mb-1">Approval wait</p>
-                  <p className="text-sm"><WaitTimeDisplay guide={guide} /></p>
-                </div>
-                <div className="border border-gray-100 rounded-lg p-3 bg-gray-50/50">
-                  <p className="text-xs text-gray-400 mb-1">OAuth flow</p>
-                  <p className="text-sm font-semibold text-gray-900 capitalize">
-                    {guide.oauth_flow_type.replace(/_/g, ' ')}
-                  </p>
-                </div>
-              </div>
-            )}
+              )}
 
-            {/* Difficulty reason */}
-            {guide.difficulty_reason && (
-              <div className={`rounded-lg p-4 border ${diff?.bg} ${diff?.border}`}>
-                <p className={`text-sm ${diff?.color} leading-relaxed`}>{guide.difficulty_reason}</p>
-              </div>
-            )}
+              {/* Difficulty explanation */}
+              {guide.difficulty_reason && (
+                <div className={`rounded-lg p-4 border text-sm leading-relaxed ${diff?.bg} ${diff?.border} ${diff?.color}`}>
+                  {guide.difficulty_reason}
+                </div>
+              )}
+            </div>
 
-            {/* Prerequisites */}
+            {/* Prerequisites Checklist */}
             {guide.prerequisites.length > 0 && (
-              <section>
-                <h2 className="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-3">
-                  Before you start
+              <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+                <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">
+                  Prerequisites Checklist (Before you start)
                 </h2>
-                <ul className="space-y-2">
+                <div className="space-y-2.5">
                   {guide.prerequisites.map((p, i) => (
-                    <li key={i} className="flex items-start gap-2 text-sm text-gray-700">
-                      <span className="text-gray-400 mt-0.5 font-mono">□</span>
-                      <span>{p}</span>
-                    </li>
+                    <div key={i} className="flex items-start gap-3 text-sm text-gray-800">
+                      <span className="w-4 h-4 mt-0.5 rounded border border-gray-300 flex items-center justify-center text-[10px] text-gray-400 flex-shrink-0">
+                        □
+                      </span>
+                      <span className="leading-relaxed font-medium">{p}</span>
+                    </div>
                   ))}
-                </ul>
-              </section>
+                </div>
+              </div>
             )}
 
-            {/* Steps */}
+            {/* Step-by-Step Setup */}
             {guide.steps.length > 0 && (
-              <section>
-                <div className="flex items-center justify-between mb-3">
-                  <h2 className="text-sm font-semibold text-gray-900 uppercase tracking-wider">
-                    Step-by-step setup
+              <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+                <div className="flex items-center justify-between mb-5">
+                  <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                    Step-by-Step Setup Guide
                   </h2>
                   {guide.portal_url && (
                     <a
                       href={guide.portal_url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-xs text-blue-600 hover:underline"
+                      className="text-xs text-blue-600 hover:text-blue-800 font-medium inline-flex items-center gap-1"
                     >
-                      Developer portal →
+                      <span>Open console</span>
+                      <span>↗</span>
                     </a>
                   )}
                 </div>
-                <div className="space-y-4">
+
+                <div className="space-y-6">
                   {guide.steps.map((step) => (
-                    <div key={step.number} className="flex gap-3">
-                      <div className="flex-shrink-0 w-6 h-6 rounded-full bg-black text-white flex items-center justify-center text-xs font-semibold mt-0.5">
+                    <div key={step.number} className="flex gap-4">
+                      <div className="flex-shrink-0 w-6 h-6 rounded-full bg-black text-white flex items-center justify-center text-xs font-bold mt-0.5">
                         {step.number}
                       </div>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <p className="text-sm font-semibold text-gray-900">{step.title}</p>
+                      <div className="flex-1 space-y-1.5">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <h3 className="text-sm font-bold text-gray-900">{step.title}</h3>
                           {step.requires_human && (
-                            <span className="text-[11px] bg-amber-50 text-amber-800 border border-amber-200 px-1.5 py-0.5 rounded font-medium">
-                              Requires human
+                            <span className="inline-flex items-center gap-1 text-[11px] bg-amber-50 text-amber-800 border border-amber-200 px-2 py-0.5 rounded-full font-medium">
+                              <span>👤</span>
+                              <span>Requires human action</span>
                             </span>
                           )}
                         </div>
+
                         <p className="text-sm text-gray-600 leading-relaxed">{step.description}</p>
-                        {step.url && (
-                          <a
-                            href={step.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-xs text-blue-600 hover:underline mt-1.5 inline-block"
-                          >
-                            {step.url} →
-                          </a>
-                        )}
+
                         {step.requires_human && step.human_reason && (
-                          <p className="text-xs text-amber-700 mt-1 italic">Why: {step.human_reason}</p>
+                          <p className="text-xs text-amber-700 bg-amber-50/60 border border-amber-100 rounded px-2.5 py-1">
+                            <span className="font-semibold">Why human required:</span> {step.human_reason}
+                          </p>
+                        )}
+
+                        {step.url && (
+                          <div className="pt-1">
+                            <a
+                              href={step.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 font-medium hover:underline"
+                            >
+                              <span>Verify step in documentation</span>
+                              <span>↗</span>
+                            </a>
+                          </div>
                         )}
                       </div>
                     </div>
                   ))}
                 </div>
-              </section>
+              </div>
             )}
 
-            {/* Approval */}
-            {guide.approval_required && guide.approval_triggers.length > 0 && (
-              <section className="bg-orange-50/50 border border-orange-200/70 rounded-lg p-4">
-                <h2 className="text-sm font-semibold text-orange-950 uppercase tracking-wider mb-2">
-                  Approval triggers & requirements
-                </h2>
-                <p className="text-xs text-orange-800 mb-2">Review is required if any of these apply:</p>
-                <ul className="space-y-1.5">
-                  {guide.approval_triggers.map((t, i) => (
-                    <li key={i} className="text-xs text-orange-900 flex items-start gap-2">
-                      <span className="text-orange-500 font-bold">•</span>
-                      <span>{t}</span>
-                    </li>
-                  ))}
-                </ul>
-              </section>
+            {/* Approval Triggers & Blockers */}
+            {(guide.approval_triggers.length > 0 || guide.known_blockers.length > 0) && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Triggers */}
+                {guide.approval_triggers.length > 0 && (
+                  <div className="bg-amber-50/60 border border-amber-200/70 rounded-xl p-5 space-y-3">
+                    <h3 className="text-xs font-bold text-amber-900 uppercase tracking-wider flex items-center gap-1.5">
+                      <span>⚠️</span>
+                      <span>Approval Triggers</span>
+                    </h3>
+                    <p className="text-xs text-amber-800">
+                      Provider review is triggered if any of these conditions apply:
+                    </p>
+                    <ul className="space-y-2">
+                      {guide.approval_triggers.map((t, i) => (
+                        <li key={i} className="text-xs text-amber-950 flex items-start gap-2 leading-relaxed">
+                          <span className="text-amber-500 font-bold mt-0.5">•</span>
+                          <span>{t}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {/* Blockers */}
+                {guide.known_blockers.length > 0 && (
+                  <div className="bg-rose-50/60 border border-rose-200/70 rounded-xl p-5 space-y-3">
+                    <h3 className="text-xs font-bold text-rose-900 uppercase tracking-wider flex items-center gap-1.5">
+                      <span>⛔</span>
+                      <span>Known Gotchas & Blockers</span>
+                    </h3>
+                    <p className="text-xs text-rose-800">
+                      Common failure points developers report encountering:
+                    </p>
+                    <ul className="space-y-2">
+                      {guide.known_blockers.map((b, i) => (
+                        <li key={i} className="text-xs text-rose-950 flex items-start gap-2 leading-relaxed">
+                          <span className="text-rose-500 font-bold mt-0.5">•</span>
+                          <span>{b}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
             )}
 
-            {/* Blockers */}
-            {guide.known_blockers.length > 0 && (
-              <section>
-                <h2 className="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-3">
-                  Known blockers & gotchas
-                </h2>
-                <div className="space-y-2">
-                  {guide.known_blockers.map((b, i) => (
-                    <div key={i} className="flex items-start gap-2.5 bg-red-50/70 border border-red-100 rounded-lg px-3.5 py-2.5">
-                      <span className="text-red-500 text-xs mt-0.5">⚠️</span>
-                      <p className="text-sm text-red-900 leading-relaxed">{b}</p>
-                    </div>
-                  ))}
-                </div>
-              </section>
-            )}
-
-            {/* Scopes */}
+            {/* Scopes & Permissions */}
             {guide.scopes_available.length > 0 && (
-              <section>
-                <h2 className="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-3">
-                  Permissions & Scopes
+              <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+                <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">
+                  Scopes & Review Thresholds
                 </h2>
                 <div className="space-y-2">
                   {guide.scopes_available.map((scope, i) => (
-                    <div key={i} className="flex items-start gap-3 p-2 rounded border border-gray-100 bg-gray-50/30">
-                      <code className="text-xs bg-gray-100 px-2 py-0.5 rounded font-mono text-gray-800 flex-shrink-0 mt-0.5">
-                        {scope.name}
-                      </code>
-                      <div className="flex-1">
+                    <div key={i} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-2.5 rounded-lg border border-gray-100 bg-slate-50/40">
+                      <div className="flex items-center gap-2">
+                        <code className="text-xs bg-gray-100 text-gray-800 font-mono px-2 py-0.5 rounded font-semibold">
+                          {scope.name}
+                        </code>
                         <span className="text-xs text-gray-600">{scope.description}</span>
-                        {scope.requires_review && (
-                          <span className="ml-2 text-[11px] text-red-600 font-semibold bg-red-50 border border-red-200 px-1.5 py-0.2 rounded">
-                            Triggers review
-                          </span>
-                        )}
                       </div>
+                      {scope.requires_review && (
+                        <span className="text-[11px] text-rose-700 font-semibold bg-rose-50 border border-rose-200 px-2 py-0.5 rounded self-start sm:self-auto">
+                          Triggers Review
+                        </span>
+                      )}
                     </div>
                   ))}
                 </div>
-              </section>
+              </div>
             )}
 
-            {/* What agent did */}
+            {/* What Developers Report (Community Evidence) */}
+            {guide.community_insights.length > 0 && (
+              <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm space-y-4">
+                <div>
+                  <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                    Community Signals (What Developers Report)
+                  </h2>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Real-world reports from developer forums, GitHub issues, and discussion threads
+                  </p>
+                </div>
+                <div className="space-y-3">
+                  {guide.community_insights.map((c, i) => (
+                    <div key={i} className="border border-gray-100 rounded-lg p-4 bg-slate-50/40 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[11px] font-semibold text-gray-600 bg-gray-100 px-2 py-0.5 rounded">
+                          {SOURCE_LABEL[c.source_type] || c.source_type}
+                        </span>
+                        {c.source_url && (
+                          <a
+                            href={c.source_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xs text-blue-600 hover:text-blue-800 font-medium inline-flex items-center gap-1"
+                          >
+                            <span>Open source discussion</span>
+                            <span>↗</span>
+                          </a>
+                        )}
+                      </div>
+                      <p className="text-sm text-gray-700 italic leading-relaxed">"{c.insight}"</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Agent Verification & Audit Ledger */}
             {guide.agent_verified.length > 0 && (
-              <section className="bg-gray-50 border border-gray-200/80 rounded-lg p-4">
-                <h2 className="text-xs font-semibold text-gray-700 uppercase tracking-wider mb-3">
-                  Verification & Evidence Ledger
+              <div className="bg-slate-50 border border-gray-200 rounded-xl p-5 space-y-3">
+                <h2 className="text-xs font-bold text-gray-500 uppercase tracking-wider">
+                  Agent Verification & Audit Ledger
                 </h2>
                 <div className="space-y-2">
                   {guide.agent_verified.map((v, i) => (
-                    <div key={i} className="flex items-start gap-2 text-xs">
+                    <div key={i} className="flex items-start gap-2.5 text-xs">
                       <span className={
-                        v.status === 'verified' || v.status === 'found' ? 'text-green-600 font-bold' :
+                        v.status === 'verified' || v.status === 'found' ? 'text-emerald-600 font-bold' :
                         v.status === 'attempted' ? 'text-amber-500 font-bold' : 'text-gray-400 font-bold'
                       }>
                         {v.status === 'verified' || v.status === 'found' ? '✓' :
@@ -411,71 +491,46 @@ export default function GuideClient({ appName }: { appName: string }) {
                     </div>
                   ))}
                 </div>
-              </section>
+              </div>
             )}
 
-            {/* Community insights */}
-            {guide.community_insights.length > 0 && (
-              <section>
-                <h2 className="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-1">
-                  What developers report (Community signals)
-                </h2>
-                <p className="text-xs text-gray-400 mb-3">
-                  Real-world experiences from developer forums, Reddit, and GitHub discussions
-                </p>
-                <div className="space-y-2.5">
-                  {guide.community_insights.map((c, i) => (
-                    <div key={i} className="border border-gray-100 rounded-lg p-3 bg-white shadow-sm">
-                      <div className="flex items-center gap-2 mb-1.5">
-                        <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider bg-gray-100 px-1.5 py-0.5 rounded">
-                          {SOURCE_LABEL[c.source_type]}
-                        </span>
-                      </div>
-                      <p className="text-sm text-gray-700 leading-relaxed italic">"{c.insight}"</p>
-                      {c.source_url && (
-                        <a
-                          href={c.source_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-xs text-blue-600 hover:underline mt-2 inline-block font-medium"
-                        >
-                          View discussion →
-                        </a>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </section>
-            )}
-
-            {/* Official sources */}
+            {/* Official Sources */}
             {guide.official_sources.length > 0 && (
-              <section>
-                <h2 className="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-3">
-                  Official Sources & Documentation
+              <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm space-y-3">
+                <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                  Official Primary Sources
                 </h2>
-                <div className="space-y-1.5">
+                <div className="space-y-2">
                   {guide.official_sources.map((s, i) => (
                     <a
                       key={i}
                       href={s.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-2 text-sm text-blue-600 hover:underline"
+                      className="flex items-center justify-between p-3 rounded-lg border border-gray-100 hover:border-blue-200 hover:bg-blue-50/30 transition-colors group"
                     >
-                      <span className="text-xs bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded font-medium">Docs</span>
-                      <span>{s.title}</span>
-                      <span className="text-xs text-gray-400">↗</span>
+                      <div className="flex items-center gap-2.5">
+                        <span className="text-xs bg-blue-100 text-blue-800 font-semibold px-2 py-0.5 rounded">
+                          Official Docs
+                        </span>
+                        <span className="text-sm font-medium text-gray-900 group-hover:text-blue-700">
+                          {s.title}
+                        </span>
+                      </div>
+                      <span className="text-xs text-gray-400 group-hover:text-blue-600 font-medium flex items-center gap-1">
+                        <span>Read docs</span>
+                        <span>↗</span>
+                      </span>
                     </a>
                   ))}
                 </div>
-              </section>
+              </div>
             )}
 
             {/* Footer */}
-            <div className="border-t border-gray-100 pt-6 flex items-center justify-between text-xs text-gray-400">
+            <div className="pt-4 flex items-center justify-between text-xs text-gray-400">
               <p>
-                Verified at {new Date(guide.generated_at).toLocaleDateString()}
+                Specification verified at {new Date(guide.generated_at).toLocaleDateString()}
               </p>
               <Link href="/" className="text-gray-600 hover:text-gray-900 font-medium">
                 ← Search another application
