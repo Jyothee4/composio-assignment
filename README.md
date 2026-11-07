@@ -1,11 +1,5 @@
 # OAuthGuide
 
-Building an AI agent is fast. What usually slows developers down is connecting that agent to real apps like Google, Slack, Notion, or Salesforce. 
-
-Setting up OAuth apps with these providers is painful because you don't know what to expect. Does setup take 15 minutes, or are you looking at a 3-week security review? Do you need a live privacy policy before you can even get API keys?
-
-OAuthGuide gives you an answer in about 20 seconds. It shows you the setup steps, estimated wait times, known gotchas, and whether a step needs a human or can be automated.
-
 ## Setup Instructions
 
 ### Running Locally
