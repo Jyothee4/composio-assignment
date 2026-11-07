@@ -1,70 +1,71 @@
 # OAuthGuide
 
-> **Executive Summary**: Building an AI agent takes an afternoon; getting enterprise OAuth credentials to connect that agent to real-world user data (Google, Slack, Salesforce) often stalls product launches for weeks. OAuthGuide solves this last-mile integration blind spot by giving developers instant, verifiable roadmaps—difficulty tiers, real wait times, gotchas, and step-by-step guidance—generated either instantly from a verified 5-tier library or live in ~22 seconds for any arbitrary app.
+Building an AI agent is fast. What usually slows developers down is connecting that agent to real apps like Google, Slack, Notion, or Salesforce. 
 
----
+Setting up OAuth apps with these providers is painful because you don't know what to expect. Does setup take 15 minutes, or are you looking at a 3-week security review? Do you need a live privacy policy before you can even get API keys?
 
-## ⚡ Quickstart Setup
+OAuthGuide gives you an answer in about 20 seconds. It shows you the setup steps, estimated wait times, known gotchas, and whether a step needs a human or can be automated.
 
-### Local Development (3 Steps)
+## Setup Instructions
 
+### Running Locally
+
+1. Clone the repo and install dependencies:
 ```bash
-# 1. Clone & install
 git clone https://github.com/Jyothee4/composio-assignment.git
 cd composio-assignment/oauth-guide
-bun install   # npm, pnpm, or yarn also work
+bun install
+```
+*(You can also use npm, pnpm, or yarn)*
 
-# 2. Configure environment (keys needed only for live investigation of unlisted apps)
+2. Copy the environment file:
+```bash
 cp .env.example .env.local
-# Add: EXA_API_KEY, FIRECRAWL_API_KEY, GEMINI_API_KEY to .env.local
+```
+Add your API keys to `.env.local`:
+- `EXA_API_KEY` (for search)
+- `FIRECRAWL_API_KEY` (for scraping)
+- `GEMINI_API_KEY` (for extracting the guide)
 
-# 3. Start dev server
+*Note: You can test the 5 showcase apps (GitHub, Notion, Slack, Google, Salesforce) right away without any API keys. Keys are only used when you search an unlisted app or click Re-investigate live.*
+
+3. Start the app:
+```bash
 bun dev
 ```
-Open [http://localhost:3000](http://localhost:3000). 
+Open http://localhost:3000 in your browser.
 
-*Note: The 5 showcase apps (GitHub, Notion, Slack, Google, Salesforce) load instantly from the local library with zero API keys required.*
+### Deploying to Vercel
 
-### Vercel Deployment
-1. Import repo into Vercel.
-2. Set **Root Directory** to `oauth-guide`.
-3. Add `EXA_API_KEY`, `FIRECRAWL_API_KEY`, and `GEMINI_API_KEY` under **Environment Variables**.
-4. Deploy.
+1. Import this repo into Vercel.
+2. Set the Root Directory to `oauth-guide`.
+3. Add your three keys (`EXA_API_KEY`, `FIRECRAWL_API_KEY`, `GEMINI_API_KEY`) under Environment Variables.
+4. Hit Deploy.
 
----
+## Key Decisions We Made
 
-## 🧭 Key Decisions Across Our Build Journey
+Here are the main decisions we made while building this:
 
-As product managers and consultants evaluate technical prototypes, the code matters—but the **strategic trade-offs and decision velocity** matter more. Here are the 6 pivotal product and architectural decisions that shaped OAuthGuide:
+1. **Pre-built library + live agent fallback**  
+   Instead of trying to manually write guides for 100 apps (which would quickly go out of date), we built 5 thorough showcase apps across different difficulty tiers, and backed them with a live agent. If an app isn't in the library, the agent searches the web, reads the docs, and generates the guide on the spot.
 
-### 1. Dual-Track Architecture (Showcase Library + Live Agent Pipeline)
-* **The Dilemma**: Should we manually write a static catalog of 100 apps, or rely 100% on live autonomous search?
-* **The Decision**: **A hybrid dual-engine model**. Writing 100 static guides creates immediate maintenance debt and rots as provider policies change. Relying solely on live search creates cold-start latency and potential API rate limit failures during interviews. We built an instant, pre-verified 5-tier benchmark library (GitHub to Salesforce) for immediate zero-latency evaluation, backed by an autonomous live agent pipeline (Exa + Firecrawl + Gemini) that investigates any long-tail app in ~22 seconds.
+2. **Strict JSON schema instead of free-form text**  
+   Early on, asking the model to write a markdown guide led to messy, inconsistent results. We switched to a strict JSON schema. This makes sure every guide gives developers the exact same core numbers: setup time in minutes, approval wait in days, and a clean list of steps and blockers.
 
-### 2. Schema-Driven Extraction Over Unstructured LLM Prose
-* **The Dilemma**: Early prototypes prompted LLMs to output free-form markdown setup guides.
-* **The Decision**: **Enforce a strict TypeScript schema (`OAuthGuide`)**. Free-form LLM output produces inconsistent headings, subjective time estimates, and unparseable steps. Enforcing structured JSON extraction guarantees that every app—whether Google or an obscure SaaS—is evaluated on identical parameters: normalized difficulty (1–5), numeric setup minutes, approval wait day ranges, specific review triggers, and structured human-in-the-loop flags.
+3. **Clearly labeling what needs a human**  
+   An AI agent can't log into a private Google Cloud account, pass two-factor auth, or record a product demo video. We explicitly label steps that require human action so developers know where code stops and they have to take over.
 
-### 3. Explicit Division of Labor (`👤 Requires Human Action`)
-* **The Dilemma**: AI agent tools often over-promise "full automation," leaving developers confused when a script abruptly halts at a login screen.
-* **The Decision**: **Unambiguous human handoff demarcation**. An AI agent cannot complete SMS 2FA, upload corporate tax filings, or record a required YouTube screencast demonstrating OAuth consent flows. Every setup step is categorized: automated configuration vs. `Requires human action`. This builds immediate credibility with engineering teams.
+4. **Looking at community discussions, not just official docs**  
+   Official docs often make approval sound easy (like Google claiming verification takes "2-3 business days"). In reality, developers on Reddit and GitHub report 2 to 4 weeks of waiting and multiple video rejections. We pull in real developer discussions so people know what to actually expect.
 
-### 4. Dual-Lens Truth (Official Docs vs. Community Reality)
-* **The Dilemma**: Official provider documentation routinely downplays review friction (e.g., Google stating app verification takes "2–3 business days").
-* **The Decision**: **Mine community discussions (GitHub issues, Reddit, Stack Overflow) in parallel with official docs**. Developers don't get blocked by what is in the documentation—they get blocked by undocumented gotchas (e.g., Google rejecting OAuth consent screens due to unverified privacy policy domains, or video formatting nuances that stretch review times to 4 weeks). We separate official claims from community ground truth.
+5. **Being honest when scraping gets blocked**  
+   Web scrapers run into Cloudflare challenges and bot blocks all the time. When Firecrawl can't scrape a page directly, we don't pretend it worked. The app falls back to semantic search excerpts and clearly states in the audit log that direct scraping was blocked.
 
-### 5. Scrape Transparency & Anti-Bot Fallback in the Audit Ledger
-* **The Dilemma**: Web scrapers frequently encounter Cloudflare challenges, bot protections, or empty single-page application shells.
-* **The Decision**: **Honest engineering transparency over silent failure**. When Firecrawl successfully scrapes clean markdown, the audit ledger states `✓ Clean markdown extracted via Firecrawl`. When a provider blocks direct scraping, the agent doesn't hallucinate or fail—it logs `○ Direct scrape blocked by provider anti-bot; gracefully fell back to Exa neural semantic excerpts`. This aligns directly with enterprise compliance expectations: show what was tested, what was verified, and what remains uncertain.
+6. **Keeping total search time under 30 seconds**  
+   Vercel serverless functions time out after 60 seconds, and nobody wants to wait 2 minutes for a search. We used Exa for fast parallel search, Firecrawl for main-body scraping, and Gemini Flash-Lite for quick JSON extraction. The whole live search finishes in around 20 to 25 seconds. We also added a model fallback list in case Google hits temporary capacity limits.
 
-### 6. Sub-30s Latency Budget & Resilient Model Fallback
-* **The Dilemma**: Heavy reasoning models or multi-agent debate loops take 60–90+ seconds, causing Vercel serverless timeouts and high bounce rates.
-* **The Decision**: **Engineered a ~22-second pipeline using Gemini Flash-Lite with an automatic cascade**. We coupled Exa's parallel neural retrieval (URL + cleaned text in ~4s), Firecrawl's main-body scraper (~6s), and Gemini Flash-Lite (~10s). To insulate against peak-hour 503 capacity spikes, the backend dynamically falls back through a model chain (`gemini-3.1-flash-lite` → `gemini-3.5-flash-lite` → `gemini-3.8-flash`) before failing.
+## Limitations
 
----
-
-## ⚖️ Known Limitations & Production Horizon
-
-* **Gated Developer Consoles**: The agent cannot authenticate into portals requiring paid corporate memberships (e.g., Apple Developer Program) or internal corporate SSO. Guidance for these tools is synthesized from public policies and verified developer discussions.
-* **Free-Tier Rate Ceilings**: The Google AI Studio free tier caps requests at ~20 calls per project per day. In production, this requires linking a Google Cloud billing account (lifting the quota to 1,500+ RPM).
-* **Caching Layer**: Currently, identical searches for long-tail apps run live queries every time. Adding an edge Redis layer (e.g., Upstash) would cache live investigation results for 7 days, reducing external API spend by >75%.
+- **Private developer portals:** The agent can only read public documentation and public developer forums. It cannot log into dashboards that sit behind paid accounts or corporate logins (like the Apple Developer Program).
+- **Free tier API limits:** Gemini's free tier has a daily request limit (~20 requests per day). For production traffic, you would need a paid API tier.
+- **No database caching yet:** If two people search the same unlisted app, the agent runs the live search twice. In a production version, we would add Redis to cache search results for 7 days.
